@@ -152,6 +152,62 @@ namespace Microsoft.ML.OnnxRuntime
         {
             Init(model, options, prepackedWeightsContainer);
         }
+
+
+        /// <summary>
+        /// Constructs an InferenceSession from a model file
+        /// </summary>
+        /// <param name="modelPath"></param>
+        public InferenceSession(Stream modelStream)
+        {
+            _builtInSessionOptions = new SessionOptions(); // need to be disposed
+            Init(modelStream, _builtInSessionOptions);
+        }
+
+        /// <summary>
+        /// Constructs an InferenceSession from a model file and it will use 
+        /// the provided pre-packed weights container to store and share pre-packed buffers 
+        /// of shared initializers across sessions if any.
+        /// </summary>
+        /// <param name="modelPath">Model path</param>
+        /// <param name="prepackedWeightsContainer">Instance of PrepackedWeightsContainer. 
+        /// Lifetime of 'prepackedWeightsContainer' must be
+        /// managed by the user and it must outlive any sessions reliant on it</param>
+        public InferenceSession(Stream modelStream, PrePackedWeightsContainer prepackedWeightsContainer)
+        {
+            _builtInSessionOptions = new SessionOptions(); // need to be disposed
+            Init(modelStream, _builtInSessionOptions, prepackedWeightsContainer);
+        }
+
+
+        /// <summary>
+        /// Constructs an InferenceSession from a model file, with some additional session options
+        /// </summary>
+        /// <param name="modelPath"></param>
+        /// <param name="options"></param>
+        public InferenceSession(Stream modelStream, SessionOptions options)
+        {
+            Init(modelStream, options);
+        }
+
+
+        /// <summary>
+        /// Constructs an InferenceSession from a model file, with some additional session options
+        /// and it will use the provided pre-packed weights container to store and share pre-packed buffers 
+        /// of shared initializers across sessions if any.
+        /// </summary>
+        /// <param name="modelPath">Model path</param>
+        /// <param name="options">Session options</param>
+        /// <param name="prepackedWeightsContainer">Instance of PrepackedWeightsContainer. 
+        /// Lifetime of 'prepackedWeightsContainer' must be
+        /// managed by the user and it must outlive any sessions reliant on it</param>
+        public InferenceSession(Stream modelStream, SessionOptions options,
+            PrePackedWeightsContainer prepackedWeightsContainer)
+        {
+            Init(modelStream, options, prepackedWeightsContainer);
+        }
+
+
         /// <summary>
         /// Meta data regarding the input nodes, keyed by input names
         /// </summary>
@@ -782,6 +838,29 @@ namespace Microsoft.ML.OnnxRuntime
                 NativeApiStatus.VerifySuccess(NativeMethods.OrtCreateSessionWithPrepackedWeightsContainer(
                     envHandle, NativeOnnxValueHelper.GetPlatformSerializedString(modelPath),
                     options.Handle, prepackedWeightsContainer.Pointer, out session));
+            }
+
+            InitWithSessionHandle(session, options);
+        }
+
+        private void Init(Stream modelStream, SessionOptions options,
+                         PrePackedWeightsContainer prepackedWeightsContainer = null)
+        {
+            var envHandle = OrtEnv.Handle;
+            var session = IntPtr.Zero;
+
+            if (prepackedWeightsContainer == null)
+            {
+
+                NativeApiStatus.VerifySuccess(NativeMethods.OrtCreateSessionFromStream(envHandle, modelStream, (UIntPtr)modelStream.Length, options.Handle, out session));
+            }
+
+            else
+            {
+                NativeApiStatus.VerifySuccess(NativeMethods.OrtCreateSessionFromStreamWithPrepackedWeightsContainer(
+                    envHandle, modelStream, (UIntPtr)modelStream.Length, options.Handle, prepackedWeightsContainer.Pointer,
+                    out session));
+
             }
 
             InitWithSessionHandle(session, options);

@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using System.IO;
 using System.Runtime.InteropServices;
 
 namespace Microsoft.ML.OnnxRuntime
@@ -629,6 +630,16 @@ namespace Microsoft.ML.OnnxRuntime
                                                 out IntPtr /**/ session);
         public static DOrtCreateSessionFromArray OrtCreateSessionFromArray;
 
+
+        [UnmanagedFunctionPointer(CallingConvention.Winapi)]
+        public delegate IntPtr /* OrtStatus* */DOrtCreateSessionFromStream(
+                                        IntPtr /* (OrtEnv*) */ environment,
+                                        Stream modelStream,
+                                        UIntPtr modelSize,
+                                        IntPtr /* (OrtSessionOptions*) */ sessionOptions,
+                                        out IntPtr /**/ session);
+        public static DOrtCreateSessionFromStream OrtCreateSessionFromStream;
+
         /// <summary>
         /// Creates an instance of OrtSession with provided parameters
         /// </summary>
@@ -647,6 +658,17 @@ namespace Microsoft.ML.OnnxRuntime
                                         IntPtr /* (OrtPrepackedWeightsContainer*) */prepackedWeightsContainer,
                                         out IntPtr /* (OrtSession**) */ session);
         public static DOrtCreateSessionFromArrayWithPrepackedWeightsContainer OrtCreateSessionFromArrayWithPrepackedWeightsContainer;
+
+
+        [UnmanagedFunctionPointer(CallingConvention.Winapi)]
+        public delegate IntPtr /* OrtStatus* */DOrtCreateSessionFromStreamWithPrepackedWeightsContainer(
+                                IntPtr /* (OrtEnv*) */ environment,
+                                Stream /* (void*) */ modelStream,
+                                UIntPtr /* (size_t) */ modelSize,
+                                IntPtr /* (OrtSessionOptions*) */ sessionOptions,
+                                IntPtr /* (OrtPrepackedWeightsContainer*) */prepackedWeightsContainer,
+                                out IntPtr /* (OrtSession**) */ session);
+        public static DOrtCreateSessionFromStreamWithPrepackedWeightsContainer OrtCreateSessionFromStreamWithPrepackedWeightsContainer;
 
         [UnmanagedFunctionPointer(CallingConvention.Winapi)]
         public delegate IntPtr /*(ONNStatus*)*/ DOrtRun(
